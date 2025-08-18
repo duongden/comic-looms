@@ -74,6 +74,26 @@ class EHMatcher extends BaseMatcher<string> {
     chapter.meta.originTitle = originTitle;
     const tagTrList = doc.querySelectorAll<HTMLElement>("#taglist tr");
     const tags: Record<string, string[]> = {};
+
+    // gallery detail
+    const category = doc.querySelector("#gdc > div")?.textContent;
+    if (category) tags["category"] = [category];
+    const uploader = doc.querySelector("#gdn > a")?.textContent;
+    if (uploader) tags["uploader"] = [uploader];
+    // detail
+    Array.from(doc.querySelectorAll("#gdd > table tr")).forEach(tr => {
+      const cat = tr.querySelector(".gdt1")?.textContent?.replace(":", "")?.toLowerCase();
+      let value = tr.querySelector(".gdt2")?.textContent;
+      if (cat && value) {
+        if (cat === "parent" || cat === "父级") {
+          value = tr.querySelector<HTMLAnchorElement>(".gdt2 a")?.href ?? value;
+        }
+        if (cat === "language" || cat === "语言") return;
+        tags[cat] = [value];
+      }
+    });
+
+    // gallery tags
     tagTrList.forEach((tr) => {
       const tds = tr.childNodes;
       const cat = tds[0].textContent;
