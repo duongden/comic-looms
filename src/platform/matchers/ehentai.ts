@@ -81,7 +81,7 @@ class EHMatcher extends BaseMatcher<string> {
     const uploader = doc.querySelector("#gdn > a")?.textContent;
     if (uploader) tags["uploader"] = [uploader];
     // detail
-    Array.from(doc.querySelectorAll("#gdd > table tr")).forEach(tr => {
+    Array.from(doc.querySelectorAll("#gdd > table:not([hidden]) tr")).forEach(tr => {
       const cat = tr.querySelector(".gdt1")?.textContent?.replace(":", "")?.toLowerCase();
       let value = tr.querySelector(".gdt2")?.textContent;
       if (cat && value) {
