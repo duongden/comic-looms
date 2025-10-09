@@ -162,7 +162,8 @@ class Comic18Matcher extends BaseMatcher<string> {
 ADAPTER.addSetup({
   name: "禁漫",
   workURLs: [
-    /(18|jm)comic.*?\/album\/\d+/
+    /(18|jm)comic.*?\/album\/\d+/,
+    /jm18c-.*?\/album\/\d+/,
   ],
   match: ["https://18comic.vip/*"],
   constructor: () => new Comic18Matcher(),
