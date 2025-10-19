@@ -12,8 +12,10 @@ import { Scroller } from "../utils/scroller";
 import { calculateDistance, TouchManager } from "../utils/touch";
 import { DEFAULT_THUMBNAIL } from "../img-node";
 import { ADAPTER } from "../platform/adapt";
+import { HTMLUgoiraElement } from "../utils/ugoira";
+import { SubData } from "../platform/platform";
 
-type MediaElement = HTMLImageElement | HTMLVideoElement;
+type MediaElement = HTMLImageElement | HTMLVideoElement | HTMLUgoiraElement;
 
 export class BigImageFrameManager {
   root: HTMLElement;
@@ -703,6 +705,21 @@ export class BigImageFrameManager {
       };
       vid.src = imf.node.blobSrc!;
       return vid;
+    } else if (imf.contentType?.startsWith("ugoira")) {
+      const ugoiraElem = document.createElement("ugoira-element") as HTMLUgoiraElement;
+      ugoiraElem.classList.add("bifm-img");
+
+      // set frames
+      const data = imf.data as SubData
+      const meta = data.extra as { file: string, delay: number }[];
+      const frames = [];
+      for (let i = 1; i < data.list.length; i++) { // i = 1, because 0 is frames.txt
+        const frame = data.list[i];
+        frames.push({ name: frame.name, delay: meta[i - 1].delay, mimeType: frame.contentType, data: frame.data });
+      }
+      ugoiraElem.frames = frames;
+
+      return ugoiraElem;
     } else {
       const img = document.createElement("img");
       img.decoding = "async";

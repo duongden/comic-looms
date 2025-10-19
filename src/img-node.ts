@@ -244,7 +244,7 @@ export default class ImageNode {
     this.debouncer.addEvent("IMG-RENDER", () => {
       if (!this.imgElement) return onfailed("element undefined");
       let justThumbnail = !force && (!ADAPTER.conf.hdThumbnails || !this.blobSrc);
-      if (this.mimeType === "image/gif" || this.mimeType?.startsWith("video")) {
+      if (this.mimeType === "image/gif" || this.mimeType?.startsWith("ugoira") || this.mimeType?.startsWith("video")) {
         const tip = OVERLAY_TIP.cloneNode(true);
         tip.firstChild!.textContent = this.mimeType.split("/")[1].toUpperCase();
         this.root?.appendChild(tip);

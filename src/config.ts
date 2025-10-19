@@ -73,8 +73,6 @@ export type Config = {
   preventScrollPageTime: number
   /** 下载文件分卷大小，单位Mib */
   archiveVolumeSize: number
-  /** 动图转换为 */
-  pixivConvertTo: "GIF" | "MP4"
   pixivImageServer?: string
   /** 自动收起控制面板 */
   autoCollapsePanel: boolean,
@@ -117,6 +115,8 @@ export type Config = {
   pixivRecordReading: boolean,
   /** the aritst's works order, ascend true means old first */
   pixivAscendWorks: boolean,
+  /** how to process ugoira */
+  pixivUgoiraMode: "ugoira" | "gif" | "mp4";
   filenameOrder: "auto" | "numbers" | "original" | "alphabetically",
   dragImageOut: boolean,
   excludeVideo: boolean,
@@ -164,7 +164,6 @@ export function defaultConf(): Config {
     filenameTemplate: "{number}-{title}",
     preventScrollPageTime: 100,
     archiveVolumeSize: 1200,
-    pixivConvertTo: "GIF",
     pixivImageServer: undefined,
     autoCollapsePanel: true,
     minifyPageHelper: IS_MOBILE ? "never" : "inBigMode",
@@ -187,6 +186,7 @@ export function defaultConf(): Config {
     autoEnterBig: false,
     pixivRecordReading: false,
     pixivAscendWorks: false,
+    pixivUgoiraMode: "ugoira",
     filenameOrder: "auto",
     dragImageOut: false,
     excludeVideo: false,
@@ -378,6 +378,7 @@ export type ConfigSelectType = "readMode"
   | "hitomiFormat"
   | "ehentaiTitlePrefer"
   | "filenameOrder"
+  | "pixivUgoiraMode"
   ;
 export type ConfigTextType = "pixivImageServer"
   ;
@@ -452,6 +453,13 @@ export const ConfigItems: ConfigItem[] = [
       { value: "webp", display: "Webp" },
       { value: "jxl", display: "Jxl" },
     ], displayInSite: /hitomi.la\//
+  },
+  {
+    key: "pixivUgoiraMode", typ: "select", options: [
+      { value: "ugoira", display: "Ugoira" },
+      { value: "gif", display: "gif" },
+      { value: "mp4", display: "mp4" },
+    ], displayInSite: /pixiv.net/
   },
   {
     key: "ehentaiTitlePrefer", typ: "select", options: [

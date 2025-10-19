@@ -1,7 +1,7 @@
 import { FetchState, IMGFetcher } from "../img-fetcher";
 import { IMGFetcherQueue } from "../fetcher-queue";
 import { IdleLoader } from "../idle-loader";
-import { Matcher } from "../platform/platform";
+import { Matcher, SubData } from "../platform/platform";
 import { GalleryMeta } from "./gallery-meta";
 import { Elements } from "../ui/html";
 import { FileLike, Zip } from "../utils/zip-stream";
@@ -207,6 +207,7 @@ export class Downloader {
 
   mapToFileLikes(chapter: Chapter, picked: CherryPick, directory: string): FileLike[] {
     if (!chapter || chapter.filteredQueue.length === 0) return [];
+    const SEP = navigator.userAgent.indexOf("Win") !== -1 ? "\\" : "/";
     let checkTitle: (title: string, index: number) => string;
     const needNumberTitle = this.needNumberTitle(chapter.filteredQueue);
     if (needNumberTitle) {
@@ -220,15 +221,35 @@ export class Downloader {
       this.filenames.clear();
       checkTitle = (title: string) => deduplicate(this.filenames, title.replaceAll(FILENAME_INVALIDCHAR, "_"));
     }
-    const ret = chapter.filteredQueue
-      .filter((imf, i) => picked.picked(i) && imf.stage === FetchState.DONE && imf.data)
-      .map((imf, index) => {
-        return {
-          stream: () => Promise.resolve(uint8ArrayToReadableStream(imf.data!)),
-          size: () => imf.data!.byteLength,
-          name: directory + checkTitle(imf.node.title, index)
+    const fQueue = chapter.filteredQueue.filter((imf, i) => picked.picked(i) && imf.stage === FetchState.DONE && imf.data);
+    const ret = [];
+
+    for (let i = 0; i < fQueue.length; i++) {
+      const imf = fQueue[i];
+      if (imf.data instanceof SubData) {
+        const subDirectory = imf.data.directory.replaceAll(FILENAME_INVALIDCHAR, "_");
+        for (const sd of imf.data.list) {
+          const data = sd.data;
+          const size = data.byteLength;
+          const name = sd.name.replaceAll(FILENAME_INVALIDCHAR, "_");
+          const file = {
+            stream: () => Promise.resolve(uint8ArrayToReadableStream(data)),
+            size: () => size,
+            name: directory + SEP + subDirectory + SEP + name,
+          };
+          ret.push(file);
         }
-      });
+      } else if (imf.data instanceof Uint8Array) {
+        const data = imf.data;
+        const size = imf.data.byteLength;
+        const file = {
+          stream: () => Promise.resolve(uint8ArrayToReadableStream(data)),
+          size: () => size,
+          name: directory + SEP + checkTitle(imf.node.title, i)
+        };
+        ret.push(file);
+      }
+    }
     // gallery meta
     const meta = new TextEncoder().encode(JSON.stringify(this.meta(chapter), null, 2));
     ret.push({
@@ -242,7 +263,6 @@ export class Downloader {
   async download(chapters: Chapter[]) {
     try {
       const archiveName = this.title(chapters).replaceAll(FILENAME_INVALIDCHAR, "_");
-      const separator = navigator.userAgent.indexOf("Win") !== -1 ? "\\" : "/";
       const singleChapter = chapters.length === 1;
       this.panel.flushUI("packaging");
       const dirnameSet = new Set<string>();
@@ -253,9 +273,9 @@ export class Downloader {
         let directory = (() => {
           if (singleChapter) return "";
           if (chapter.title instanceof Array) {
-            return chapter.title.join("_").replaceAll(FILENAME_INVALIDCHAR, "_").replaceAll(/\s+/g, " ") + separator;
+            return chapter.title.join("_").replaceAll(FILENAME_INVALIDCHAR, "_").replaceAll(/\s+/g, " ");
           } else {
-            return chapter.title.replaceAll(FILENAME_INVALIDCHAR, "_").replaceAll(/\s+/g, " ") + separator;
+            return chapter.title.replaceAll(FILENAME_INVALIDCHAR, "_").replaceAll(/\s+/g, " ");
           }
         })();
         directory = shrinkFilename(directory, 200);

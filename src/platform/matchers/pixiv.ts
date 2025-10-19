@@ -1,6 +1,6 @@
 import { GalleryMeta } from "../../download/gallery-meta";
 import { evLog } from "../../utils/ev-log";
-import { BaseMatcher, OriginMeta, Result } from "../platform";
+import { BaseMatcher, OriginMeta, Result, SubData } from "../platform";
 import { FFmpegConvertor } from "../../utils/ffmpeg";
 import ImageNode, { NodeAction } from "../../img-node";
 import * as zip_js from "@zip.js/zip.js";
@@ -9,6 +9,7 @@ import { Chapter } from "../../page-fetcher";
 import EBUS from "../../event-bus";
 import { ADAPTER } from "../adapt";
 import { i18n } from "../../utils/i18n";
+import { HTMLUgoiraElement } from "../../utils/ugoira";
 
 type ArtistPIDs = {
   id?: string,
@@ -231,13 +232,11 @@ class PixivMatcher extends BaseMatcher<ArtistPIDs[]> {
     }
   }
 
-  async processData(data: Uint8Array, contentType: string, node: ImageNode): Promise<[Uint8Array, string]> {
+  async processData(data: Uint8Array, contentType: string, node: ImageNode): Promise<[Uint8Array | SubData, string]> {
     const meta = this.ugoiraMetas[node.originSrc!];
     if (!meta) return [data, contentType];
     const zipReader = new zip_js.ZipReader(new zip_js.Uint8ArrayReader(data));
-    const start = performance.now();
     if (!this.convertor) this.convertor = await new FFmpegConvertor().init();
-    const initConvertorEnd = performance.now();
     const promises = await zipReader.getEntries()
       .then(
         entries =>
@@ -246,21 +245,22 @@ class PixivMatcher extends BaseMatcher<ArtistPIDs[]> {
           )
       );
     const files = await Promise.all(promises).then((entries => entries.filter(f => f && f.data.length > 0).map(f => f!)));
-    const unpackUgoira = performance.now();
     if (files.length !== meta.body.frames.length) {
       throw new Error("unpack ugoira file error: file count not equal to meta");
     }
-    const blob = await this.convertor.convertTo(files, ADAPTER.conf.pixivConvertTo, meta.body.frames);
-    const convertEnd = performance.now();
-    evLog("debug", `convert ugoira to ${ADAPTER.conf.pixivConvertTo}
-init convertor cost: ${(initConvertorEnd - start)}ms
-unpack ugoira  cost: ${(unpackUgoira - initConvertorEnd)}ms
-ffmpeg convert cost: ${(convertEnd - unpackUgoira)}ms
-total cost: ${(convertEnd - start) / 1000}s
-size: ${blob.size / 1000} KB, original size: ${data.byteLength / 1000} KB
-before contentType: ${contentType}, after contentType: ${blob.type}
-`);
-    return blob.arrayBuffer().then((buffer) => [new Uint8Array(buffer), blob.type]);
+
+    if (ADAPTER.conf.pixivUgoiraMode === "ugoira") {
+      const mimeType = meta.body.mime_type;
+      const list = files.map(f => ({ name: f.name, data: f.data, contentType: mimeType }));
+      const metaStr = meta.body.frames.map(m => `file '${m.file}'\nduration ${m.delay / 1000}`).join('\n');
+      const metaStrRaw = new TextEncoder().encode(metaStr);
+      list.unshift({ name: "frames.txt", contentType: "text/plain", data: metaStrRaw });
+      return [new SubData(node.title, list, meta.body.frames), "ugoira/ugoira"];
+    } else {
+      const format = ADAPTER.conf.pixivUgoiraMode === "gif" ? "GIF" : "MP4";
+      const blob = await this.convertor.convertTo(files, format, meta.body.frames);
+      return blob.arrayBuffer().then((buffer) => [new Uint8Array(buffer), blob.type]);
+    }
   }
 
   galleryMeta(): GalleryMeta {
@@ -444,5 +444,10 @@ ADAPTER.addSetup({
     /pixiv.net\/(en\/)?(artworks\/.*|users\/.*|$)/
   ],
   match: ["https://www.pixiv.net/*"],
-  constructor: () => new PixivMatcher(),
+  constructor: () => {
+    if (!customElements.get("ugoira-element")) {
+      customElements.define("ugoira-element", HTMLUgoiraElement);
+    }
+    return new PixivMatcher();
+  },
 });

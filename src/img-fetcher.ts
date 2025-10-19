@@ -2,7 +2,7 @@ import { transient } from "./config";
 import EBUS from "./event-bus";
 import ImageNode from "./img-node";
 import { ADAPTER } from "./platform/adapt";
-import { Matcher, OriginMeta } from "./platform/platform";
+import { Matcher, OriginMeta, SubData } from "./platform/platform";
 import { Debouncer } from "./utils/debouncer";
 import { evLog } from "./utils/ev-log";
 import { i18n } from "./utils/i18n";
@@ -41,7 +41,7 @@ export class IMGFetcher {
   tryTimes: number = 0;
   lock: boolean = false;
   rendered: boolean = false;
-  data?: Uint8Array;
+  data?: Uint8Array | SubData;
   contentType?: string;
   downloadState: DownloadState;
   timeoutId?: number;
@@ -134,14 +134,16 @@ export class IMGFetcher {
             [this.data, this.contentType] = ret;
             [this.data, this.contentType] = await this.matcher.processData(this.data, this.contentType, this.node);
             this.node.updateTagByPrefix("mime:" + (this.contentType ?? "unknown"));
-            if (this.contentType.startsWith("text")) {
+            if (this.contentType.startsWith("text") && !(this.data instanceof SubData)) {
               // if (this.data.byteLength < 100000) { // less then 100kb
               const str = new TextDecoder().decode(this.data);
               evLog("error", "unexpect content:\n", str);
               throw new Error(`expect image data, fetched wrong type: ${this.contentType}, the content is showing up in console(F12 open it).`);
               // }
             }
-            this.node.blobSrc = transient.imgSrcCSP ? this.node.originSrc : URL.createObjectURL(new Blob([this.data], { type: this.contentType }));
+            if (this.data instanceof Uint8Array) {
+              this.node.blobSrc = transient.imgSrcCSP ? this.node.originSrc : URL.createObjectURL(new Blob([this.data], { type: this.contentType }));
+            }
             this.node.mimeType = this.contentType;
             this.node.render((reason) => {
               evLog("error", "render image failed, " + reason);
