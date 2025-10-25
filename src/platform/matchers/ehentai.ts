@@ -348,7 +348,11 @@ class EHMatcher extends BaseMatcher<string> {
   async processData(data: Uint8Array, contentType: string): Promise<[Uint8Array, string]> {
     if (contentType.startsWith("text")) {
       if (data.byteLength === 1329) {
-        throw new Error("fetching the raw image requires being logged in, please try logging in or disable \"raw image\"");
+        throw new Error("Downloading original images requires being logged in, please try logging in or disable \"raw image\"");
+      }
+      const str = new TextDecoder().decode(data).trim();
+      if (str && str.startsWith("Downloading original files of this gallery requires GP")) {
+        throw new Error(str.trim());
       }
     }
     return [data, contentType];
