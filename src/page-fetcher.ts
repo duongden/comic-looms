@@ -200,7 +200,7 @@ export class PageFetcher {
       const first = await chapter.sourceIter.next();
       if (!first.done) {
         if (first.value.error) throw first.value.error;
-        await this.appendImages(first.value.value);
+        await this.appendImages(first.value.value, this.chapterIndex);
       }
       this.appendPages(this.queue.length);
     }
@@ -231,13 +231,13 @@ export class PageFetcher {
       }
       // Parse the next page data to IMGFetcher[], then append to view and IMGFetcherQueue
       if (next.value?.value) {
-        return await this.appendImages(next.value.value);
+        return await this.appendImages(next.value.value, this.chapterIndex);
       }
       // If chapter.sourceIter is done, call this.appendToView() to trigger the update of some view elements
       if (next.done) {
         chapter.done = true;
         if (next.value?.value) {
-          return await this.appendImages(next.value.value);
+          return await this.appendImages(next.value.value, this.chapterIndex);
         } else {
           this.appendToView(this.queue.length, [], this.chapterIndex, true);
           return false;
@@ -257,16 +257,16 @@ export class PageFetcher {
   /**
    * Parse the data information of each page, extract image information, create `IMGFetcher[]`, and append to `IMGFetcherQueue` and `BigImageFrameManager`
    */
-  async appendImages(pageSource: any): Promise<boolean> {
+  async appendImages(pageSource: any, chapterIndex: number): Promise<boolean> {
     try {
-      const nodes = await this.obtainImageNodeList(pageSource);
+      const nodes = await this.obtainImageNodeList(pageSource, chapterIndex);
       if (this.abortb) return false;
       if (nodes.length === 0) return false;
-      const chapter = this.chapters[this.chapterIndex];
+      const chapter = this.chapters[chapterIndex];
       const len = chapter.filteredQueue.length;
       const IFs = nodes.map(
         (imgNode, index) => {
-          const imf = new IMGFetcher(index + len, imgNode, this.matcher, this.chapterIndex, this.chapters[this.chapterIndex].id);
+          const imf = new IMGFetcher(index + len, imgNode, this.matcher, chapterIndex, this.chapters[chapterIndex].id);
           // add node actions
           this.nodeActionDesc.forEach(nad => {
             const f = async (node: ImageNode) => {
@@ -289,7 +289,7 @@ export class PageFetcher {
       filteredIFs.forEach((node, i) => node.index = len + i);
       chapter.filteredQueue.push(...filteredIFs);
       this.queue.push(...filteredIFs);
-      this.appendToView(this.queue.length, filteredIFs, this.chapterIndex);
+      this.appendToView(this.queue.length, filteredIFs, chapterIndex);
       return true;
     } catch (error) {
       evLog("error", `page fetcher append images error: `, error);
@@ -298,12 +298,12 @@ export class PageFetcher {
     }
   }
 
-  async obtainImageNodeList(pageSource: any): Promise<ImageNode[]> {
+  async obtainImageNodeList(pageSource: any, chapterIndex: number): Promise<ImageNode[]> {
     let tryTimes = 0;
     let err: any;
     while (tryTimes < 3) {
       try {
-        return await this.matcher.parseImgNodes(pageSource, this.chapters[this.chapterIndex].id);
+        return await this.matcher.parseImgNodes(pageSource, this.chapters[chapterIndex].id);
       } catch (error) {
         evLog("error", "warn: parse image nodes failed, retrying: ", error)
         tryTimes++;
