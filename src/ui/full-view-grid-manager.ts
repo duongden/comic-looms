@@ -128,8 +128,8 @@ export class FullViewGridManager {
   }
   renderCurrView() {
     const [se, ee] = this.layout.visibleRange(this.root, this.queue.map(e => e.element));
-    const [start, end] = [parseInt(se.getAttribute("data-index") ?? "-1"), parseInt(ee.getAttribute("data-index") ?? "-1")];
-    if (start < end && start > -1 && end < this.queue.length) {
+    let [start, end] = [parseInt(se.getAttribute("data-index") ?? "-1"), parseInt(ee.getAttribute("data-index") ?? "-1")];
+    if (start > -1) {
       this.queue.slice(start, end + 1).forEach(e => e.node.render());
       evLog("info", "render curr view, range: ", `[${start}-${end}]`);
     } else {
