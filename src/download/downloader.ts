@@ -208,7 +208,8 @@ export class Downloader {
 
   mapToFileLikes(chapter: Chapter, picked: CherryPick, directory: string): FileLike[] {
     if (!chapter || chapter.filteredQueue.length === 0) return [];
-    const SEP = navigator.userAgent.indexOf("Win") !== -1 ? "\\" : "/";
+    // const SEP = navigator.userAgent.indexOf("Win") !== -1 ? "/" : "/";
+    const SEP = "/"; // this is ok
     let checkTitle: (title: string, index: number) => string;
     const needNumberTitle = this.needNumberTitle(chapter.filteredQueue);
     if (needNumberTitle) {

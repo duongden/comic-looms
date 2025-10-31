@@ -170,7 +170,7 @@ setlocal enabledelayedexpansion
 REM Check if ffmpeg is installed
 where ffmpeg >nul 2>nul
 if errorlevel 1 (
-    echo ffmpeg is not installed. Please install ffmpeg and make sure it is in your PATH.
+    echo ffmpeg is not installed. Please install ffmpeg and make sure it is in your PATH. (Try: winget install ffmpeg)
     pause
     exit /b 1
 )
