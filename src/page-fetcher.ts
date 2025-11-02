@@ -198,7 +198,7 @@ export class PageFetcher {
     }
     if (chapter.queue.length === 0) {
       const first = await chapter.sourceIter.next();
-      if (!first.done) {
+      if (first.value) {
         if (first.value.error) throw first.value.error;
         await this.appendImages(first.value.value, this.chapterIndex);
       }
