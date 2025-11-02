@@ -9,6 +9,7 @@ class MangaCopyMatcher extends BaseMatcher<string> {
   update_date?: string;
   chapterCount: number = 0;
   meta?: GalleryMeta;
+  jojoKey?: string;
   galleryMeta(): GalleryMeta {
     if (this.meta) return this.meta;
     let title = document.querySelector(".comicParticulars-title-right > ul > li > h6")?.textContent ?? document.title;
@@ -27,8 +28,8 @@ class MangaCopyMatcher extends BaseMatcher<string> {
   async parseImgNodes(source: string): Promise<ImageNode[]> {
     const raw = await simpleFetch(source, "text", { "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.5112.79 Safari/537.36" });
     const doc = new DOMParser().parseFromString(raw, "text/html");
-    const jojoKey = raw.match(/var (jojo|ccy|cct)\s?=\s?'(.*?)';/)?.[2];
-    if (!jojoKey) throw new Error("cannot find jojo|ccy|cct Key for decrypt :(");
+    const jojoKey = raw.match(/var (jojo|ccy|cct|ccz)\s?=\s?'(.*?)';/)?.[2];
+    if (!jojoKey) throw new Error("cannot find jojo|ccy|cct|ccz Key for decrypt :(");
     const contentKey = doc.querySelector(".imageData[contentKey]")?.getAttribute("contentKey") ?? raw.match(/var (contentKey)\s?=\s?'(.*?)';/)?.[2];
     if (!contentKey) throw new Error("cannot find content key");
     try {
@@ -49,47 +50,72 @@ class MangaCopyMatcher extends BaseMatcher<string> {
     const thumbimg = document.querySelector<HTMLImageElement>(".comicParticulars-left-img > img[data-src]")?.getAttribute("data-src") || undefined;
     const pathWord = window.location.href.match(PATH_WORD_REGEX)?.[1];
     if (!pathWord) throw new Error("cannot match comic id");
-    const comicInfoURL = `https://api.mangacopy.com/api/v3/comic2/${pathWord}?platform=1&_update=true`;
-    const comicInfo = await window.fetch(comicInfoURL).then<{ code: number, message: string, results: MCAPIComicDetail }>(res => res.json()).catch(reason => new Error(reason.toString()));
-    if (comicInfo instanceof Error || !comicInfo.results.groups) throw new Error("fetch comic detail error: " + comicInfo.toString());
-    if (comicInfo.code !== 200) throw new Error("fetch comic detail error: " + comicInfo.message);
-
+    const comicInfoURL = `https://www.mangacopy.com/comicdetail/${pathWord}/chapters`;
+    const comicInfo = await window.fetch(comicInfoURL, {
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+        "dnts": "3",
+      }
+    }).then<{ code: number, message: string, results: string }>(res => res.json()).catch(reason => new Error(reason.toString()));
+    if (comicInfo instanceof Error) throw new Error("获取漫画详情失败: " + comicInfo.toString());
+    if (comicInfo.code !== 200) throw new Error("获取漫画详情失败: " + comicInfo.message);
+    const detailRaw = await decrypt(comicInfo.results, getCcz());
+    const detail = JSON.parse(detailRaw) as MCChapterDetail;
+    console.log(detail);
     const chapters: Chapter[] = [];
     // fetch all chapters by group
-    const groups = comicInfo.results.groups;
-    let chapterCount = 0;
+    const groups = detail.groups;
+    if (!groups) throw new Error("章节信息为空，可能被风控(一小时)");
+    let chapterCount = 1;
+    // let offset = 0;
     for (const group in groups) {
-      let offset = 0;
-      while (true) {
-        const chaptersURL = `https://api.mangacopy.com/api/v3/comic/${pathWord}/group/${groups[group].path_word}/chapters?limit=100&offset=${offset}&_update=true`;
-        const data = await window.fetch(chaptersURL).then<{ code: number, message: string, results: MCAPIChapterResult }>(res => res.json()).catch(reason => new Error(reason.toString()));
-        if (data instanceof Error) throw new Error("fetch chapters error: " + data.toString());
-        if (data.code !== 200) throw new Error("fetch chaters error: " + data.message);
-        const result = data.results;
-        offset += result.list.length;
-        for (const ch of result.list) {
-          chapters.push(new Chapter(
-            chapterCount++,
-            group === "default" ? ch.name : `${groups[group].name}-${ch.name}`,
-            // source: `https://api.mangacopy.com/api/v3/comic/${pathWord}/chapter2/${ch.uuid}?platform=1&_update=true`,
-            `${window.location.origin}/comic/${pathWord}/chapter/${ch.uuid}`,
-            thumbimg,
-          ));
-        }
-        if (offset >= result.total) break;
-      }
+      const chs = groups[group].chapters;
+      for (const ch of chs)
+        chapters.push(new Chapter(
+          chapterCount++,
+          group === "default" ? ch.name : `${groups[group].name}-${ch.name}`,
+          `${window.location.origin}/comic/${pathWord}/chapter/${ch.id}`,
+          thumbimg,
+        ));
     }
+    this.chapterCount = chapterCount - 1;
     return chapters;
-
-    // let details: MCChapterDetails;
-    // try {
-    //   const decryption = await decrypt(data.results);
-    //   details = JSON.parse(decryption);
-    // } catch (error) {
-    //   throw new Error("parse chapter details error: " + (error as any).toString());
-    // }
   }
 }
+
+function getCcz(): string {
+  // @ts-ignore
+  if (ccz) return ccz;
+  // @ts-ignore
+  if (ccy) return ccy;
+  return "op0zzpvv.nzh.oip";
+}
+
+type MCChapterDetail = {
+  "build": {
+    "path_word": string,
+    // {
+    //   "id": 1,
+    //   "name": "話"
+    // },
+    "type": { id: number, name: string }[],
+  },
+  "groups": Record<string, MCChapterDetailGroup>,
+}
+
+type MCChapterDetailGroup = {
+  // "path_word": "default",
+  "path_word": string,
+  "count": number,
+  // "name": "默認",
+  "name": string,
+  // {
+  //   "type": 2,
+  //   "name": "VOL01",
+  //   "id": "f6d7dfea-992c-11ea-aeec-00163e0ca5bd"
+  // },
+  "chapters": { type: number, name: string, id: string }[],
+};
 
 const PATH_WORD_REGEX = /\/comic\/(\w*)/;
 
@@ -160,64 +186,7 @@ async function decrypt(raw: string, jojoKey: string): Promise<string> {
 //   }
 //   return r(6);
 // }
-
-type MCAPIChapter = {
-  index: number,
-  uuid: string,
-  count: number,
-  ordered: number,
-  size: number,
-  name: string,
-  comic_id: string,
-  comic_path_word: string,
-  group_id: string,
-  group_path_word: string,
-  type: number,
-  img_type: number,
-  news: string,
-  datetime_created: string,
-  prev?: string,
-  next?: string,
-}
-
-type MCAPIChapterResult = {
-  total: number,
-  limit: number,
-  offset: number,
-  list: MCAPIChapter[],
-}
-
-type MCAPIComicDetail = {
-  is_banned: boolean,
-  is_lock: boolean,
-  is_login: boolean,
-  is_mobile_bind: boolean,
-  is_vip: boolean,
-  comic: {
-    uuid: string,
-    ban: string,
-    name: string,
-    alias: string,
-    path_word: string,
-    free_type: {
-      display: string,
-      value: number,
-    },
-    brief: string, // description
-    cover: string, // thumbnail image
-    last_chapter: {
-      uuid: string,
-      name: string,
-    }
-  },
-  groups: Record<string, MCGroupInfo>,
-}
-
-type MCGroupInfo = {
-  path_word: string,
-  count: number,
-  name: string,
-}
+// 
 ADAPTER.addSetup({
   name: "拷贝漫画",
   workURLs: [
@@ -226,3 +195,4 @@ ADAPTER.addSetup({
   match: ["https://www.mangacopy.com/*"],
   constructor: () => new MangaCopyMatcher(),
 });
+
