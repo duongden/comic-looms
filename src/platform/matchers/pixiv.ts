@@ -235,10 +235,10 @@ class PixivMatcher extends BaseMatcher<ArtistPIDs[]> {
     }
   }
 
-  async processData(data: Uint8Array, contentType: string, node: ImageNode): Promise<[Uint8Array | SubData, string]> {
+  async processData(data: Blob, contentType: string, node: ImageNode): Promise<[Blob | SubData, string]> {
     const meta = this.ugoiraMetas[node.originSrc!];
     if (!meta) return [data, contentType];
-    const zipReader = new zip_js.ZipReader(new zip_js.Uint8ArrayReader(data));
+    const zipReader = new zip_js.ZipReader(new zip_js.BlobReader(data));
     if (!this.convertor) this.convertor = await new FFmpegConvertor().init();
     const promises = await zipReader.getEntries()
       .then(
@@ -262,7 +262,7 @@ class PixivMatcher extends BaseMatcher<ArtistPIDs[]> {
     } else {
       const format = ADAPTER.conf.pixivUgoiraMode === "gif" ? "GIF" : "MP4";
       const blob = await this.convertor.convertTo(files, format, meta.body.frames);
-      return blob.arrayBuffer().then((buffer) => [new Uint8Array(buffer), blob.type]);
+      return [blob, blob.type];
     }
   }
 

@@ -72,7 +72,7 @@ class ArtStationMatcher extends BaseMatcher<ArtStationProject[]> {
     }
     return { url: node.originSrc! };
   }
-  async processData(data: Uint8Array, contentType: string): Promise<[Uint8Array, string]> {
+  async processData(data: Blob, contentType: string): Promise<[Blob, string]> {
     if (contentType.startsWith("binary") || contentType.startsWith("text")) {
       return [data, "video/mp4"];
     }

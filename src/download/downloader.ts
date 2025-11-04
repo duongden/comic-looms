@@ -231,7 +231,7 @@ export class Downloader {
       const imf = fQueue[i];
       if (imf.data instanceof SubData) {
         // TODO: subDirectory checkTitle, keep order
-        const subDirectory = imf.data.directory.replaceAll(FILENAME_INVALIDCHAR, "_");
+        const subDirectory = checkTitle(imf.node.title, i);
         if (subDirectory.includes("ugoira0")) {
           needConvertScript = true;
         }
@@ -246,11 +246,11 @@ export class Downloader {
           };
           ret.push(file);
         }
-      } else if (imf.data instanceof Uint8Array) {
+      } else if (imf.data instanceof Blob) {
         const data = imf.data;
-        const size = imf.data.byteLength;
+        const size = imf.data.size;
         const file = {
-          stream: () => Promise.resolve(uint8ArrayToReadableStream(data)),
+          stream: () => data.arrayBuffer().then(buf => uint8ArrayToReadableStream(new Uint8Array(buf))),
           size: () => size,
           name: directory + (directory === "" ? "" : SEP) + checkTitle(imf.node.title, i)
         };

@@ -122,7 +122,7 @@ export class IMGFetcherQueue extends Array<IMGFetcher> {
     if (!success || imf.stage !== FetchState.DONE) return;
     this.finishedIndex.add(index);
     if (this.dataSize < 1000000000) { // 1GB
-      this.dataSize += imf.data?.byteLength || 0;
+      this.dataSize += imf.data?.size || 0;
     }
     EBUS.emit("ifq-on-finished-report", index, this);
   }

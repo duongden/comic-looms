@@ -96,7 +96,7 @@ class Comic18Matcher extends BaseMatcher<string> {
     return list;
   }
 
-  async processData(data: Uint8Array, contentType: string, node: ImageNode): Promise<[Uint8Array, string]> {
+  async processData(data: Blob, contentType: string, node: ImageNode): Promise<[Blob, string]> {
     const reg = /(\d+)\/(\d+)\.(\w+)/;
     const matches = node.originSrc!.match(reg);
     const gid = matches![1];
@@ -106,7 +106,7 @@ class Comic18Matcher extends BaseMatcher<string> {
     const page = matches![2];
     const ext = matches![3];
     if (ext === "gif") return [data, contentType];
-    const img = await createImageBitmap(new Blob([data], { type: contentType }));
+    const img = await createImageBitmap(data);
     const canvas = document.createElement("canvas");
     canvas.width = img.width;
     canvas.height = img.height;
@@ -114,7 +114,11 @@ class Comic18Matcher extends BaseMatcher<string> {
     drawImage(ctx, img, gid, page);
     return new Promise(resolve =>
       canvas.toBlob(
-        (blob) => blob?.arrayBuffer().then(buf => resolve([new Uint8Array(buf), blob.type])).finally(() => canvas.remove()),
+        (blob) => {
+          if (!blob) throw new Error("canvas.toBlob was given a null value");
+          resolve([blob!, contentType]);
+          canvas.remove();
+        },
         contentType
       )
     );

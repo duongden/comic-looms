@@ -1,4 +1,3 @@
-import { GM_xmlhttpRequest } from "$";
 import { GalleryMeta } from "./download/gallery-meta";
 import EBUS from "./event-bus";
 import { IMGFetcherQueue } from "./fetcher-queue";
@@ -9,6 +8,7 @@ import { ADAPTER } from "./platform/adapt";
 import { Matcher, Result } from "./platform/platform";
 import { Debouncer } from "./utils/debouncer";
 import { evLog } from "./utils/ev-log";
+import { GM_XHR } from "./utils/query";
 
 export class Chapter {
   id: number;
@@ -270,11 +270,11 @@ export class PageFetcher {
           // add node actions
           this.nodeActionDesc.forEach(nad => {
             const f = async (node: ImageNode) => {
-              const result = await nad.fun(imf, node, GM_xmlhttpRequest, EBUS) as { data?: Blob };
+              const result = await nad.fun(imf, node, GM_XHR, EBUS) as { data?: Blob };
               if (result?.data) {
                 imf.contentType = result.data.type;
-                imf.data = new Uint8Array(await result.data.arrayBuffer());
-                imf.node.blobSrc = URL.createObjectURL(new Blob([imf.data], { type: imf.contentType }));
+                imf.data = result.data;
+                imf.node.blobSrc = URL.createObjectURL(imf.data);
                 imf.render(true);
                 EBUS.emit("imf-on-finished", imf.index, true, imf);
               }

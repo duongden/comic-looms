@@ -132,16 +132,16 @@ class ColaMangaMatcher extends BaseMatcher<string> {
   async fetchOriginMeta(node: ImageNode): Promise<OriginMeta> {
     return { url: node.originSrc! };
   }
-  async processData(data: Uint8Array, _contentType: string, node: ImageNode): Promise<[Uint8Array, string]> {
-    const info = this.infoMap[node.href];
-    if (!info) throw new Error("cannot found info from " + node.href);
-    if (info.image_info.imgKey) {
-      const decoded = this.decryptImageData(data, info.image_info.keyType, info.image_info.imgKey, this.keymap!, this.keys);
-      return [decoded, _contentType];
-    } else {
-      return [data, _contentType];
-    }
-  }
+  // async processData(data: Blob, _contentType: string, node: ImageNode): Promise<[Blob, string]> {
+  //   const info = this.infoMap[node.href];
+  //   if (!info) throw new Error("cannot found info from " + node.href);
+  //   if (info.image_info.imgKey) {
+  //     const decoded = this.decryptImageData(new Uint8Array(await data.arrayBuffer()), info.image_info.keyType, info.image_info.imgKey, this.keymap!, this.keys);
+  //     return [new Blob([decoded]), _contentType];
+  //   } else {
+  //     return [data, _contentType];
+  //   }
+  // }
   headers(): Record<string, string> {
     return {
       "Referer": window.location.href,

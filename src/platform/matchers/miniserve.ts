@@ -71,7 +71,7 @@ class MiniServeMatcher extends BaseMatcher<string> {
     const data = await dataPromise;
     return { url: URL.createObjectURL(data) };
   }
-  async processData(data: Uint8Array, _contentType: string, node: ImageNode): Promise<[Uint8Array, string]> {
+  async processData(data: Blob, _contentType: string, node: ImageNode): Promise<[Blob, string]> {
     return [data, node.mimeType!];
   }
 }

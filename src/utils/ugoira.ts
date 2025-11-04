@@ -2,7 +2,7 @@ type Frame = {
   name: string,
   delay: number
   mimeType: string,
-  data: Uint8Array<ArrayBufferLike>
+  data: Uint8Array,
 };
 
 type UgoiraData = {
@@ -138,7 +138,7 @@ export class UgoiraPlayer {
     const data = [];
     for (let i = 0; i < frames.length; i++) {
       const frame = frames[i];
-      const b = new Blob([frame.data], { type: frame.mimeType });
+      const b = new Blob([frame.data as BlobPart], { type: frame.mimeType });
       const src = URL.createObjectURL(b);
       const img = new Image();
       img.addEventListener("load", () => {

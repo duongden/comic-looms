@@ -120,7 +120,7 @@ export class FFmpegConvertor {
       // delete temp files
       await Promise.all(deletePromise);
 
-      return new Blob([result], { type: mimeType });
+      return new Blob([result as BlobPart], { type: mimeType });
     } finally {
       this.taskCount--;
     }

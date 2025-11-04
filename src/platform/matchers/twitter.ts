@@ -1,8 +1,8 @@
-import { GM_xmlhttpRequest } from "$";
 import { GalleryMeta } from "../../download/gallery-meta";
 import ImageNode, { NodeAction } from "../../img-node";
 import { Chapter } from "../../page-fetcher";
 import { evLog } from "../../utils/ev-log";
+import { GM_XHR } from "../../utils/query";
 import { transactionId, uuid } from "../../utils/random";
 import { ADAPTER } from "../adapt";
 import { BaseMatcher, OriginMeta, Result } from "../platform";
@@ -263,7 +263,7 @@ class TwitterHomeForYouAPI implements TwitterAPIClient {
       headers.forEach((v, k) => { h[k] = v });
       // window.fetch on x.com cannot send post query with body, property "body" no permissions
       const text = await new Promise<string>((resolve, reject) => {
-        GM_xmlhttpRequest({
+        GM_XHR({
           method: (body) ? "POST" : "GET",
           url,
           headers: h,
