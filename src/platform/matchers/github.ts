@@ -18,7 +18,7 @@ class GithubMatcher extends BaseMatcher<GHImage[]> {
       if (!src) return undefined;
       const name = src.split("/").pop() ?? (i + 1) + ".jpg";
       return { name, url: src };
-    }).filter(img => img !== undefined);
+    }).filter(img => img !== undefined).filter((img) => !img.url.endsWith("svg"));
     yield Result.ok(ret);
   }
   async parseImgNodes(images: GHImage[]): Promise<ImageNode[]> {
