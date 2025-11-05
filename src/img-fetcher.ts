@@ -133,7 +133,7 @@ export class IMGFetcher {
             const ret = await this.fetchImageData();
             [this.data, this.contentType] = [ret, ret.type];
             [this.data, this.contentType] = await this.matcher.processData(this.data, this.contentType, this.node);
-            this.node.updateTagByPrefix("mime:" + (this.contentType ?? "unknown"));
+            this.node.updateTagByPrefix("mime:" + (this.contentType ?? "unknown")); // TODO: trigger filter.filterNodes
             if (this.contentType.startsWith("text") && !(this.data instanceof SubData)) {
               // if (this.data.byteLength < 100000) { // less then 100kb
               const str = await this.data.arrayBuffer().then(buf => new TextDecoder().decode(buf));
@@ -141,7 +141,7 @@ export class IMGFetcher {
               throw new Error(`expect image data, fetched wrong type: ${this.contentType}, the content is showing up in console(F12 open it).`);
               // }
             }
-            if (this.data instanceof Blob) {
+            if (!(this.data instanceof SubData)) {
               this.node.blobSrc = transient.imgSrcCSP ? this.node.originSrc : URL.createObjectURL(this.data);
             }
             this.node.mimeType = this.contentType;

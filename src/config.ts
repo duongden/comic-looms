@@ -120,6 +120,7 @@ export type Config = {
   dragImageOut: boolean,
   excludeVideo: boolean,
   enableFilter: boolean,
+  filterTags: string[],
   imgNodeActions: ImageActionDesc[],
   /** minRatio indicates the minimum ratio of thumbnail display to prevent the thumbnail from being too thin. */
   minRatio: number,
@@ -190,6 +191,7 @@ export function defaultConf(): Config {
     dragImageOut: false,
     excludeVideo: false,
     enableFilter: false,
+    filterTags: [],
     imgNodeActions: [],
     minRatio: 0.5,
   };

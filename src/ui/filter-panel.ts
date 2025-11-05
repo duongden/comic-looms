@@ -23,30 +23,33 @@ export class FilterPanel {
     this.candidatasFragment = document.createDocumentFragment();
     this.filter = filter;
     this.input.addEventListener("click", () => EBUS.emit("filter-update-all-tags"));
-    this.input.addEventListener("input", () => {
+    this.input.addEventListener("input", (ev) => {
       this.candidateSelectIndex = 0;
       this.updateCandidates(false);
+      ev.stopPropagation();
     });
-    this.input.addEventListener("keyup", (ev) => {
-      console.log("keypress ev: ", ev);
+    this.input.addEventListener("keydown", (ev) => ev.stopPropagation());
+    this.input.addEventListener("keypress", (ev) => {
+      // console.log("filter panel input keypress ev: ", ev);
+      ev.stopPropagation();
       if (ev.key.toLowerCase() === "arrowup") {
         this.candidateSelectIndex = this.candidateSelectIndex - 1;
         this.updateCandidates(true);
-        ev.preventDefault();
       } else if (ev.key.toLowerCase() === "arrowdown") {
         this.candidateSelectIndex = this.candidateSelectIndex + 1;
         this.updateCandidates(true);
-        ev.preventDefault();
       } else if (ev.key.toLowerCase() === "enter") {
         const tag = this.candidateCached[this.candidateSelectIndex];
+        const term = this.input.value.trim();
         this.input.value = "";
         if (tag) {
-          this.filter.push(true, tag);
+          const exclude = term.startsWith("!");
+          this.filter.push(exclude, tag);
           this.updateFilterValues();
         }
         this.candidates.hidden = true;
       }
-    })
+    });
   }
 
   updateCandidates(noCache: boolean) {
@@ -54,7 +57,10 @@ export class FilterPanel {
       this.candidates.hidden = true;
       return;
     }
-    const term = this.input.value.trim();
+    let term = this.input.value.trim();
+    const exclude = term.startsWith("!");
+    if (exclude) term = term.slice(1);
+
     // if (!term || term.length < 2) {
     //   this.candidates.hidden = true;
     //   return;
@@ -81,7 +87,7 @@ export class FilterPanel {
         const tag = (ev.target as HTMLElement).textContent;
         if (!tag) return;
         this.input.value = "";
-        this.filter.push(true, tag);
+        this.filter.push(exclude, tag);
         this.updateFilterValues();
         this.candidates.hidden = true;
       });
@@ -98,6 +104,10 @@ export class FilterPanel {
     for (const tag of this.filter.values) {
       const li = document.createElement("li");
       li.textContent = tag.tag;
+      if (tag.exclude) {
+        li.style.color = "red";
+        li.style.textDecorationLine = "line-through";
+      }
       li.addEventListener("click", (ev) => {
         const tag = (ev.target as HTMLElement).textContent;
         if (!tag) return;
