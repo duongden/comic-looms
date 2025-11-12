@@ -41,7 +41,7 @@ export class IMGFetcher {
   tryTimes: number = 0;
   lock: boolean = false;
   rendered: boolean = false;
-  data?: Blob | SubData;
+  data?: Uint8Array<ArrayBuffer> | SubData;
   contentType?: string;
   downloadState: DownloadState;
   timeoutId?: number;
@@ -130,19 +130,18 @@ export class IMGFetcher {
             this.stage = FetchState.DATA;
             return fetchMachine();
           case FetchState.DATA:
-            const ret = await this.fetchImageData();
-            [this.data, this.contentType] = [ret, ret.type];
+            [this.data, this.contentType] = await this.fetchImageData();
             [this.data, this.contentType] = await this.matcher.processData(this.data, this.contentType, this.node);
             this.node.updateTagByPrefix("mime:" + (this.contentType ?? "unknown")); // TODO: trigger filter.filterNodes
             if (this.contentType.startsWith("text") && !(this.data instanceof SubData)) {
               // if (this.data.byteLength < 100000) { // less then 100kb
-              const str = await this.data.arrayBuffer().then(buf => new TextDecoder().decode(buf));
+              const str = new TextDecoder().decode(this.data.buffer);
               evLog("error", "unexpect content:\n", str);
               throw new Error(`expect image data, fetched wrong type: ${this.contentType}, the content is showing up in console(F12 open it).`);
               // }
             }
             if (!(this.data instanceof SubData)) {
-              this.node.blobSrc = transient.imgSrcCSP ? this.node.originSrc : URL.createObjectURL(this.data);
+              this.node.blobSrc = transient.imgSrcCSP ? this.node.originSrc : URL.createObjectURL(new Blob([this.data], { type: this.contentType }));
             }
             this.node.mimeType = this.contentType;
             this.node.render((reason) => {
@@ -175,12 +174,12 @@ export class IMGFetcher {
     return await this.matcher.fetchOriginMeta(this.node, this.tryTimes > 0 || this.stage === FetchState.FAILED, this.chapterID);
   }
 
-  async fetchImageData(): Promise<Blob> {
+  async fetchImageData(): Promise<[Uint8Array<ArrayBuffer>, string]> {
     const data = await this.fetchBigImage();
     if (data == null) {
       throw new Error(`fetch image data is empty, image url:${this.node.originSrc}`);
     }
-    return data;
+    return [new Uint8Array(await data.arrayBuffer()), data.type];
   }
 
   render(force?: boolean) {

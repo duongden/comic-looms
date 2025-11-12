@@ -96,8 +96,8 @@ export class RokuHentaiMatcher extends BaseMatcher<[number, number]> {
     }
     return this.fetchedThumbnail[index]!;
   }
-  async processData(data: Blob): Promise<[Blob, string]> {
-    // rokuhentai response no content-type, just set image/jpeg
+
+  async processData(data: Uint8Array<ArrayBuffer>): Promise<[Uint8Array<ArrayBuffer>, string]> {
     return [data, "image/jpeg"];
   }
 }

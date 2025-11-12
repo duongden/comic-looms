@@ -246,11 +246,11 @@ export class Downloader {
           };
           ret.push(file);
         }
-      } else if (imf.data instanceof Blob) {
+      } else if (imf.data instanceof Uint8Array) {
         const data = imf.data;
-        const size = imf.data.size;
+        const size = imf.data.byteLength;
         const file = {
-          stream: () => data.arrayBuffer().then(buf => uint8ArrayToReadableStream(new Uint8Array(buf))),
+          stream: () => Promise.resolve(uint8ArrayToReadableStream(data)),
           size: () => size,
           name: directory + (directory === "" ? "" : SEP) + checkTitle(imf.node.title, i)
         };

@@ -273,8 +273,8 @@ export class PageFetcher {
               const result = await nad.fun(imf, node, GM_XHR, EBUS) as { data?: Blob };
               if (result?.data) {
                 imf.contentType = result.data.type;
-                imf.data = result.data;
-                imf.node.blobSrc = URL.createObjectURL(imf.data);
+                imf.data = new Uint8Array(await result.data.arrayBuffer());
+                imf.node.blobSrc = URL.createObjectURL(new Blob([imf.data], { type: imf.contentType }));
                 imf.render(true);
                 EBUS.emit("imf-on-finished", imf.index, true, imf);
               }

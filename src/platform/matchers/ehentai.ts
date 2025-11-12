@@ -345,13 +345,12 @@ class EHMatcher extends BaseMatcher<string> {
     return { url: src, href: node.href };
   }
 
-  async processData(data: Blob, contentType: string): Promise<[Blob, string]> {
+  async processData(data: Uint8Array<ArrayBuffer>, contentType: string): Promise<[Uint8Array<ArrayBuffer>, string]> {
     if (contentType.startsWith("text")) {
-      const buf = await data.arrayBuffer();
-      if (buf.byteLength === 1329) {
+      if (data.byteLength === 1329) {
         throw new Error("Downloading original images requires being logged in, please try logging in or disable \"raw image\"");
       }
-      const str = new TextDecoder().decode(buf);
+      const str = new TextDecoder().decode(data);
       if (str && str.startsWith("Downloading original files of this gallery requires GP")) {
         throw new Error(str.trim());
       }
