@@ -71,7 +71,7 @@ export function initEvents(HTML: Elements, BIFM: BigImageFrameManager, IFQ: IMGF
       const range = {
         colCount: [1, 12],
         rowHeight: [50, 4096],
-        threads: [1, 10],
+        threads: [0, 10],
         downloadThreads: [1, 10],
         timeout: [8, 40],
         autoPageSpeed: [1, 100],

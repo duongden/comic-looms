@@ -159,7 +159,9 @@ export class IMGFetcherQueue extends Array<IMGFetcher> {
     if (oriented === "next") ret = index < this.length;
     if (oriented === "prev") ret = index > -1;
     if (!ret) return false;
-    if (count < ADAPTER.conf.threads + ADAPTER.conf.paginationIMGCount - 1) return true;
+    const threads = ADAPTER.conf.threads + ADAPTER.conf.paginationIMGCount - 1;
+    const distance = Math.abs(index - this.currIndex);
+    if (threads >= distance || (ADAPTER.conf.threads > 0 && count < threads)) return true;
     return false;
   }
 
