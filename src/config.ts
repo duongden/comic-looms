@@ -164,7 +164,6 @@ export function defaultConf(): Config {
     filenameTemplate: "{number}-{title}",
     preventScrollPageTime: 100,
     archiveVolumeSize: 1200,
-    pixivImageServer: undefined,
     autoCollapsePanel: true,
     minifyPageHelper: IS_MOBILE ? "never" : "inBigMode",
     keyboards: { inBigImageMode: {}, inFullViewGrid: {}, inMain: {} },
@@ -297,6 +296,7 @@ function confHealthCheck(cf: Config): Config {
     changed = true;
   }
   if (changed) {
+    storage.setItem(getConfigKey(), "");
     saveConf(cf);
   }
   return cf;
@@ -324,6 +324,7 @@ export function resetConf(name?: string) {
     if (name) {
       storage.setItem(getConfigKey(name), "");
     } else {
+      storage.setItem(getConfigKey(), "");
       saveConf(defaultConf());
     }
   };
