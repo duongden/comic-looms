@@ -181,7 +181,7 @@ export class PageFetcher {
 
     if (!this.queue.downloading?.()) {
       this.beforeInit?.();
-      this.restoreChapter(index).then(this.afterInit).catch(this.onFailed);
+      this.restoreChapter(index).catch(this.onFailed).finally(this.afterInit);
     }
   }
 
