@@ -342,7 +342,15 @@ class EHMatcher extends BaseMatcher<string> {
     if (src.endsWith("509.gif")) {
       throw new Error("509, Image limits Exceeded, Please reset your Quota!");
     }
-    return { url: src, href: node.href };
+    // fix file extension
+    let title = node.title;
+    const titleSP = title.split(".");
+    const srcSP = src.split(".");
+    if (titleSP.length > 1 && srcSP.length > 1) {
+      titleSP[titleSP.length - 1] = srcSP.pop()!;
+      title = titleSP.join(".");
+    }
+    return { url: src, href: node.href, title, };
   }
 
   async processData(data: Uint8Array<ArrayBuffer>, contentType: string): Promise<[Uint8Array<ArrayBuffer>, string]> {
