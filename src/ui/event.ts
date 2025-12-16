@@ -482,10 +482,21 @@ export function initEvents(HTML: Elements, BIFM: BigImageFrameManager, IFQ: IMGF
       "open-full-view-grid": new AppEventDesc(
         ["enter"],
         "OPEN",
-        () => {
-          // check focus element is not input Elements
-          const activeElement = document.activeElement;
-          if (activeElement instanceof HTMLInputElement || activeElement instanceof HTMLTextAreaElement || activeElement instanceof HTMLSelectElement) return;
+        (event) => {
+          if (event instanceof KeyboardEvent) {
+            const key = parseKey(event);
+            if (key === "enter") {
+              // check focus element is not input Elements
+              const activeElement = document.activeElement as HTMLElement | null;
+              if (activeElement instanceof HTMLInputElement
+                || activeElement instanceof HTMLTextAreaElement
+                || activeElement instanceof HTMLSelectElement
+                || activeElement?.isContentEditable) {
+
+                return;
+              }
+            }
+          }
           EBUS.emit("toggle-main-view", true)
         }, true),
       "start-download": new AppEventDesc(
