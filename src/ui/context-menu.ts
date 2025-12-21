@@ -82,8 +82,14 @@ export class ContextMenu {
     this.menu = this.create(new MouseEvent("contextmenu", { relatedTarget: target, clientX: event.clientX, clientY: event.clientY }));
     this.root.appendChild(this.menu);
     const [w, h] = [this.menu.offsetWidth, this.menu.offsetHeight];
-    this.menu.style.top = (event.clientY - (h / 2)) + "px";
-    this.menu.style.left = (event.clientX - (w / 2)) + "px";
+    let top = event.clientY - (h / 2);
+    top = Math.max(0, top);
+    top = Math.min(window.innerHeight - h, top);
+    let left = event.clientX - (w / 2);
+    left = Math.max(0, left);
+    left = Math.min(window.innerWidth - w, left);
+    this.menu.style.top = top + "px";
+    this.menu.style.left = left + "px";
   }
 
   close() {
