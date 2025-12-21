@@ -40,7 +40,7 @@ function setup(): DestoryFunc {
   const BIFM: BigImageFrameManager = new BigImageFrameManager(HTML, (index) => PF.chapters[index]);
   const FVGM: FullViewGridManager = new FullViewGridManager(HTML, BIFM);
 
-  const events = initEvents(HTML, BIFM, IFQ, IL, PH);
+  const events = initEvents(HTML, BIFM, FVGM, IFQ, IL, PH);
   addEventListeners(events, HTML, BIFM, DL, PH);
   new ContextMenu(HTML, FVGM, events.appEvents);
 

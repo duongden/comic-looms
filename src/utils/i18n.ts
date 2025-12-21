@@ -1278,6 +1278,30 @@ const kbInFullViewGridData: Record<AppEventIDInFullViewGrid | AppEventIDInBigImg
     '썸네일 격자 레이아웃 크기 조정',
     'Redimensionar diseño de cuadrícula de miniaturas',
   ],
+  'cherry-pick-select': [
+    'Cherry Pick This Image',
+    '选择此图片',
+    '이 이미지 체리 픽',
+    'Seleccionar Esta Imagen'
+  ],
+  'cherry-pick-select-range': [
+    'Cherry Pick Images',
+    '选择图片们',
+    '이미지 체리 픽',
+    'Seleccionar Imágenes'
+  ],
+  'cherry-pick-exclude': [
+    'Exclude This Image',
+    '排除此图片',
+    '이 이미지 제외',
+    'Excluir Esta Imagen'
+  ],
+  'cherry-pick-exclude-range': [
+    'Exclude Images',
+    '排除图片们',
+    '이미지 제외',
+    'Excluir Imágenes'
+  ]
 };
 
 // type KBInMainKeys = keyof (typeof kbInMainData);

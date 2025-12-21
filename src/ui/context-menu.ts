@@ -1,3 +1,4 @@
+import EBUS from "../event-bus";
 import { i18n } from "../utils/i18n";
 import q from "../utils/query-element";
 import { AppEventDesc, AppEventIDInBigImgFrame, AppEventIDInFullViewGrid, AppEvents } from "./event";
@@ -61,6 +62,10 @@ export class ContextMenu {
       ["columns-decrease", "onGrid", false],
       ["columns-increase", "onGrid", false],
       ["retry-fetch-next-page", "onGrid", false],
+      ["cherry-pick-select", "onGrid", true],
+      ["cherry-pick-select-range", "onGrid", true],
+      ["cherry-pick-exclude", "onGrid", true],
+      ["cherry-pick-exclude-range", "onGrid", true],
       ["go-prev-chapter", "alway", false],
       ["go-next-chapter", "alway", false],
       ["start-download", "alway", true],
@@ -104,11 +109,16 @@ export class ContextMenu {
     }).map<HTMLElement>(item => {
       const elem = document.createElement("div");
       elem.classList.add("ehvp-context-menu-item");
-      elem.innerHTML = `<span>${item.desc.icon}</span>`;
+      elem.innerHTML = `<span style="display: flex; align-items: center;">${item.desc.icon}</span>`;
+      let addition = "";
+      if (item.id === "cherry-pick-select-range" || item.id === "cherry-pick-exclude-range") {
+        const lastIndex = EBUS.emit("get-cherry-pick-last-index");
+        const currIndex = parseInt((mev.relatedTarget as HTMLElement)?.getAttribute("data-index") ?? "");
+        if (lastIndex !== undefined && !isNaN(currIndex)) addition = ` [${lastIndex + 1}-${currIndex + 1}]`;
+      }
       elem.addEventListener("mouseover", () => {
         const textContent = i18n.keyboard[item.id].get();
-        tooltip.textContent = textContent.replace(/\s*\(.*?\)/, "");
-        // console.log(tooltip);
+        tooltip.textContent = textContent.replace(/\s*\(.*?\)/, "") + addition;
       });
       elem.addEventListener("click", () => {
         item.desc.cb(mev);

@@ -16,6 +16,7 @@ import queryCSSRules from "../utils/query-cssrules";
 import { createActionCustomPanel } from "./actions-custom";
 import { ADAPTER } from "../platform/adapt";
 import icons from "../utils/icons";
+import { FullViewGridManager } from "./full-view-grid-manager";
 
 export type Events = ReturnType<typeof initEvents>;
 
@@ -38,6 +39,10 @@ export type AppEventIDInBigImgFrame = "step-image-prev"
   | "go-next-chapter";
 export type AppEventIDInFullViewGrid = "open-big-image-mode"
   | "open-in-new-tab"
+  | "cherry-pick-select"
+  | "cherry-pick-select-range"
+  | "cherry-pick-exclude"
+  | "cherry-pick-exclude-range"
   | "pause-auto-load-temporarily"
   | "exit-full-view-grid"
   | "columns-increase"
@@ -70,7 +75,7 @@ export class AppEventDesc {
   }
 }
 
-export function initEvents(HTML: Elements, BIFM: BigImageFrameManager, IFQ: IMGFetcherQueue, IL: IdleLoader, PH: PageHelper) {
+export function initEvents(HTML: Elements, BIFM: BigImageFrameManager, FVGM: FullViewGridManager, IFQ: IMGFetcherQueue, IL: IdleLoader, PH: PageHelper) {
   // modify config
   function modNumberConfigEvent(key: ConfigNumberType, data?: "add" | "minus", value?: number, siteName?: string) {
     if (!value) {
@@ -409,7 +414,7 @@ export function initEvents(HTML: Elements, BIFM: BigImageFrameManager, IFQ: IMGF
         icons.openInNewTabIcon,
         (event) => {
           if (event instanceof MouseEvent && event.relatedTarget) {
-            const href = (event.relatedTarget as HTMLElement).querySelector("a")?.href;
+            const href = (event.relatedTarget as HTMLElement)?.querySelector("a")?.href;
             if (href) {
               const an = document.createElement("a");
               an.href = href;
@@ -420,6 +425,54 @@ export function initEvents(HTML: Elements, BIFM: BigImageFrameManager, IFQ: IMGF
           }
         }
         , false, true),
+      "cherry-pick-select": new AppEventDesc(
+        [""],
+        icons.cherryPickIcon,
+        (event) => {
+          if (event instanceof MouseEvent && event.relatedTarget) {
+            const index = parseInt((event.relatedTarget as HTMLElement)?.getAttribute("data-index") ?? "");
+            if (isNaN(index) || index < 0) return;
+            EBUS.emit("add-cherry-pick-range", FVGM.chapterIndex, index, true, false);
+          }
+        },
+        false, true
+      ),
+      "cherry-pick-select-range": new AppEventDesc(
+        [""],
+        `<span>➔</span>${icons.cherryPickIcon}`,
+        (event) => {
+          if (event instanceof MouseEvent && event.relatedTarget) {
+            const index = parseInt((event.relatedTarget as HTMLElement)?.getAttribute("data-index") ?? "");
+            if (isNaN(index) || index < 0) return;
+            EBUS.emit("add-cherry-pick-range", FVGM.chapterIndex, index, true, true);
+          }
+        },
+        false, true
+      ),
+      "cherry-pick-exclude": new AppEventDesc(
+        [""],
+        icons.excludeIcon,
+        (event) => {
+          if (event instanceof MouseEvent && event.relatedTarget) {
+            const index = parseInt((event.relatedTarget as HTMLElement)?.getAttribute("data-index") ?? "");
+            if (isNaN(index) || index < 0) return;
+            EBUS.emit("add-cherry-pick-range", FVGM.chapterIndex, index, false, false);
+          }
+        },
+        false, true
+      ),
+      "cherry-pick-exclude-range": new AppEventDesc(
+        [""],
+        `<span>➔</span>${icons.excludeIcon}`,
+        (event) => {
+          if (event instanceof MouseEvent && event.relatedTarget) {
+            const index = parseInt((event.relatedTarget as HTMLElement)?.getAttribute("data-index") ?? "");
+            if (isNaN(index) || index < 0) return;
+            EBUS.emit("add-cherry-pick-range", FVGM.chapterIndex, index, false, true);
+          }
+        },
+        false, true
+      ),
       "pause-auto-load-temporarily": new AppEventDesc(
         ["alt+p"],
         icons.pauseAutoLoadIcon,
