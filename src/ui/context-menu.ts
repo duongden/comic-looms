@@ -30,6 +30,7 @@ export class ContextMenu {
     this.root = html.root;
     // this.events = events;
     html.root.addEventListener("contextmenu", (event) => {
+      if (event.shiftKey || event.ctrlKey || event.altKey || event.metaKey) return;
       event.preventDefault();
       this.open(event);
     });
@@ -96,7 +97,7 @@ export class ContextMenu {
     div.innerHTML = `
       <div class="ehvp-context-menu-tooltip"><span class="ehvp-context-menu-tooltip-span">Context Menu</span></div>
       <div class="ehvp-context-menu-grid"></div>
-      <div style="color: white; font-size: 12px;"><span>${i18n.contextMenuTooltip.get()}</span></div>
+      <div style="color: white; font-size: 12px; text-align: center;"><span>${i18n.contextMenuTooltip.get()}</span></div>
     `;
     const tooltip = q<HTMLSpanElement>(".ehvp-context-menu-tooltip-span", div);
     const isBigMode = this.isBigMode();
