@@ -26,6 +26,7 @@ export class ContextMenu {
   items: MenuItem[];
   getTarget: (x: number, y: number) => HTMLElement | undefined;
   isBigMode: () => boolean;
+  pointerDownListener: (evt: MouseEvent) => void;
   constructor(html: Elements, fvgm: FullViewGridManager, events: AppEvents) {
     this.root = html.root;
     // this.events = events;
@@ -34,6 +35,12 @@ export class ContextMenu {
       event.preventDefault();
       this.open(event);
     });
+    this.pointerDownListener = (event) => {
+      if (!this.menu) return;
+      const path = event.composedPath();
+      if (!path.includes(this.menu)) this.close();
+    };
+
     this.getTarget = (x, y) => {
       if (!html.bigImageFrame.classList.contains("big-img-frame-collapse")) {
         return undefined;
@@ -90,10 +97,12 @@ export class ContextMenu {
     left = Math.min(window.innerWidth - w, left);
     this.menu.style.top = top + "px";
     this.menu.style.left = left + "px";
+    document.addEventListener('pointerdown', this.pointerDownListener);
   }
 
   close() {
     this.menu?.remove();
+    document.removeEventListener('pointerdown', this.pointerDownListener);
   }
 
   private create(mev: MouseEvent): HTMLElement {
@@ -134,7 +143,6 @@ export class ContextMenu {
       return elem;
     });
     q(".ehvp-context-menu-grid", div).append(...items);
-    div.addEventListener("blur", () => div.remove());
     div.addEventListener("mouseleave", () => div.remove());
     return div;
   }
