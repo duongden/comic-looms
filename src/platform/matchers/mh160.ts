@@ -65,7 +65,7 @@ class MH160Matcher extends BaseMatcher<string> {
       // 			if(typeof(qTcms_S_m_mhttpurl)!="undefined")m_httpurl=base64_decode(qTcms_S_m_mhttpurl);			
       // 			s=qTcms_m_indexurl+"statics/pic/?p="+escape(v)+"&wapif=1&picid="+qTcms_S_m_id+"&m_httpurl="+escape(m_httpurl);	
       // 		}    }
-      throw new Error("还未支持此图片url解析");
+      throw new Error("还未支持此图片url解析: " + path);
     }
   }
 
