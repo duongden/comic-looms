@@ -18,8 +18,9 @@ class YKMHMatcher extends BaseMatcher<string> {
   async *fetchChapters(): AsyncGenerator<Chapter[]> {
     const elements = Array.from(document.querySelectorAll<HTMLLIElement>("ul[id*=chapter-list] > li"));
     const ret = elements.map((elem) => {
-      const title = elem.querySelector(".list_con_zj")?.textContent;
+      let title = elem.querySelector(".list_con_zj")?.textContent;
       const url = elem.querySelector("a")?.href;
+      if (!title) title = elem.querySelector("a")?.textContent?.trim();
       return { title, url };
     }).filter(e => e.title && e.url).map((e, i) => new Chapter(i, e.title!, e.url!));
     yield ret;
