@@ -350,6 +350,7 @@ class EHMatcher extends BaseMatcher<string> {
       titleSP[titleSP.length - 1] = srcSP.pop()!;
       title = titleSP.join(".");
     }
+    title = title.replace(/\?nl=.*$/, "");
     return { url: src, href: node.href, title, };
   }
 
