@@ -10,6 +10,7 @@ import EBUS from "../../event-bus";
 import { ADAPTER } from "../adapt";
 import { i18n } from "../../utils/i18n";
 import { HTMLUgoiraElement } from "../../utils/ugoira";
+import { replaceHost } from "../../utils/url";
 
 type ArtistPIDs = {
   id?: string,
@@ -391,11 +392,11 @@ class PixivMatcher extends BaseMatcher<ArtistPIDs[]> {
         }
         j++;
         const node = new ImageNode(
-          this.changeImageServer(p.urls.small),
+          replaceHost(p.urls.small, ADAPTER.conf.pixivMirrorHost),
           `${window.location.origin}/artworks/${pid}`,
           title,
           undefined,
-          this.changeImageServer(p.urls.original),
+          replaceHost(p.urls.original, ADAPTER.conf.pixivMirrorHost),
           { w: p.width, h: p.height }
         );
         node.actions.push(actionLike);
@@ -416,28 +417,13 @@ class PixivMatcher extends BaseMatcher<ArtistPIDs[]> {
     const p = matches[2];
     if (this.works[pid]?.illustType === 2 || p === "ugoira") {
       const meta = await window.fetch(`https://www.pixiv.net/ajax/illust/${pid}/ugoira_meta?lang=en`).then(resp => resp.json()) as UgoiraMeta;
-      const original = this.changeImageServer(meta.body.src);
+      const original = replaceHost(meta.body.src, ADAPTER.conf.pixivMirrorHost);
       this.ugoiraMetas[original] = meta;
       return { url: original };
     } else {
       return { url: node.originSrc! };
     }
   }
-
-  changeImageServer(url: string): string {
-    let server = ADAPTER.conf.pixivImageServer;
-    if (server) {
-      if (!server.startsWith("http")) {
-        server = "https://" + server;
-      }
-      if (!server.endsWith("/")) {
-        server = server + "/";
-      }
-      return url.replace(/https?:\/\/[\.\w]*\//, server);
-    }
-    return url;
-  }
-
 }
 
 

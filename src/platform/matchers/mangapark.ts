@@ -48,24 +48,24 @@ class MangaParkMatcher extends BaseMatcher<string> {
     return { url: node.originSrc! };
   }
 
-  async fetchImageData(imf: IMGFetcher): Promise<Blob | null> {
+  async fetchImageData(imf: IMGFetcher): Promise<[Blob, number] | null> {
     let ret = await super.fetchImageData(imf).catch(Error);
     const url = new URL(imf.node.originSrc!);
-    if (ret === null || ret instanceof Error || ret?.type.startsWith("text")) { // server down
+    if (ret === null || ret instanceof Error || ret?.[0].type.startsWith("text")) { // server down
       this.updatePerferServer(url.host, true);
       evLog("info", "server down, try other servers", this.preferServer);
       for (const server of this.preferServer) {
         url.host = server.server;
         imf.node.originSrc = url.href;
         ret = await super.fetchImageData(imf);
-        if (ret?.type.startsWith("image")) {
+        if (ret?.[0].type.startsWith("image")) {
           break;
         };
         this.updatePerferServer(url.host, true);
       }
     }
     if (ret instanceof Error) throw ret;
-    if (ret?.type.startsWith("image")) {
+    if (ret?.[0].type.startsWith("image")) {
       this.updatePerferServer(url.host);
     }
     return ret;

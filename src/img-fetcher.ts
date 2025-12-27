@@ -175,7 +175,7 @@ export class IMGFetcher {
     if (data == null) {
       throw new Error(`fetch image data is empty, image url:${this.node.originSrc}`);
     }
-    return [new Uint8Array(await data.arrayBuffer()), data.type];
+    return [new Uint8Array(await data[0].arrayBuffer()), data[0].type];
   }
 
   render(force?: boolean) {

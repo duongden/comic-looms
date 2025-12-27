@@ -356,13 +356,13 @@ pero desactivará la lupa y la capacidad de arrastrar y mover imágenes.`,
     '아티스트의 작품을 오름차순으로 정렬합니다. 오래된 것부터 최신 순으로. (need refresh)',
     'Ordena las obras del artista en orden ascendente, de las más antiguas a las más recientes. (need refresh)'
   ],
-  pixivImageServer: [
-    'Pixiv Img Server',
+  pixivMirrorHost: [
+    'Pixiv Image Host',
     'Pixiv 图片服务器',
     'Pixiv 이미지 서버',
-    'Pixiv Img Server',
+    'Pixiv Image Host',
   ],
-  pixivImageServerTooltip: [
+  pixivMirrorHostTooltip: [
     'Replace Pixiv’s default image server i.pximg.net with the proxy server you specify, such as i.pixiv.re, to achieve better loading speeds',
     '将Pixiv默认的图片服务器 i.pximg.net 替换为你所指定的代理服务器，如： i.pixiv.re，以获得更佳的加载速度。',
     'Pixiv의 기본 이미지 서버 i.pximg.net을(를) 지정한 프록시 서버(예: i.pixiv.re)로 교체하여 더 빠른 로딩 속도를 얻으세요.',
@@ -446,6 +446,18 @@ pero desactivará la lupa y la capacidad de arrastrar y mover imágenes.`,
     '许多图库都同时拥有英文/罗马音标题和日文标题，<br>您希望下载时哪个作为文件名？',
     '많은 갤러리가 영어/로마자 제목과 일본어 제목을 모두 가지고 있습니다. <br>어떤 것을 아카이브 파일 이름으로 사용할지 선택할 수 있습니다.',
     'Muchas galerías tienen tanto un título en inglés/romanizado como un título en script japonés.<br>¿Cuál quieres usar como nombre de archivo?'
+  ],
+  ehentaiMirrorHost: [
+    'E-hentai Mirror Server',
+    'E-hentai 镜像服务器',
+    'E-hentai 미러 서버',
+    'Servidor espejo de E-hentai',
+  ],
+  ehentaiMirrorHostTooltip: [
+    'Use a third-party mirror server in the form of https://xxx.xx. This will bypass e-hentai.org’s quota calculation and reduce quotas usage. Note that mirror servers may not support original image downloads.',
+    '使用第三方的镜像服务器，格式为 https://xxx.xx，这会绕过e-hentai.org本站的额度计算，为你节省额度的使用。但镜像站可能不支持原图下载，请酌情使用。',
+    'https://xxx.xx 형식의 타사 미러 서버를 사용하세요. 이는 e-hentai.org의 쿼터 계산을 우회하여 쿼터 사용량을 줄이는 데 도움이 됩니다. 단, 미러 서버는 원본 이미지 다운로드를 지원하지 않을 수 있습니다.',
+    'Utilice un servidor espejo de terceros en el formato https://xxx.xx. Esto omitirá el cálculo de cuota de e-hentai.org y ayudará a reducir el uso de la cuota. Tenga en cuenta que los servidores espejo pueden no admitir la descarga de imágenes originales.',
   ],
   reverseMultipleImagesPost: [
     'Descending Images In Post',

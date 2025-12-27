@@ -72,7 +72,7 @@ export type Config = {
   preventScrollPageTime: number
   /** 下载文件分卷大小，单位Mib */
   archiveVolumeSize: number
-  pixivImageServer?: string
+  pixivMirrorHost: string
   /** 自动收起控制面板 */
   autoCollapsePanel: boolean,
   /** 最小化控制栏 */
@@ -97,6 +97,7 @@ export type Config = {
   reverseMultipleImagesPost: boolean,
   /** Many galleries have both an English/Romanized title and a title in Japanese script. Which gallery name would you like as archive filename?  */
   ehentaiTitlePrefer: "english" | "japanese",
+  ehentaiMirrorHost: string,
   /** Custom key scrolling delta */
   scrollingDelta: number,
   /** Custom key scrolling speed */
@@ -175,6 +176,7 @@ export function defaultConf(): Config {
     autoLoadInBackground: true,
     reverseMultipleImagesPost: true,
     ehentaiTitlePrefer: "japanese",
+    ehentaiMirrorHost: "",
     scrollingDelta: 300,
     scrollingSpeed: 20,
     id: uuid(),
@@ -186,6 +188,7 @@ export function defaultConf(): Config {
     pixivRecordReading: false,
     pixivAscendWorks: false,
     pixivUgoiraMode: "ugoira",
+    pixivMirrorHost: "",
     filenameOrder: "auto",
     dragImageOut: false,
     excludeVideo: false,
@@ -386,7 +389,8 @@ export type ConfigSelectType = "readMode"
   | "filenameOrder"
   | "pixivUgoiraMode"
   ;
-export type ConfigTextType = "pixivImageServer"
+export type ConfigTextType = "pixivMirrorHost"
+  | "ehentaiMirrorHost"
   ;
 
 type OptionValue = {
@@ -429,7 +433,8 @@ export const ConfigItems: ConfigItem[] = [
   { key: "autoCollapsePanel", typ: "boolean", gridColumnRange: [1, 11] },
   { key: "pixivRecordReading", typ: "boolean", gridColumnRange: [1, 11], displayInSite: /pixiv.net/ },
   { key: "pixivAscendWorks", typ: "boolean", gridColumnRange: [1, 11], displayInSite: /pixiv.net/ },
-  { key: "pixivImageServer", typ: "input", gridColumnRange: [1, 11], placeholder: "https://i.pixiv.re", displayInSite: /pixiv.net/ },
+  { key: "pixivMirrorHost", typ: "input", gridColumnRange: [1, 11], placeholder: "https://i.pixiv.re", displayInSite: /pixiv.net/ },
+  { key: "ehentaiMirrorHost", typ: "input", gridColumnRange: [1, 11], placeholder: "https://e-hentai.org", displayInSite: /e[\-x]hentai.org/ },
   { key: "reverseMultipleImagesPost", typ: "boolean", gridColumnRange: [1, 11], displayInSite: /(x.com|twitter.com)\// },
   { key: "excludeVideo", typ: "boolean", gridColumnRange: [1, 11], displayInSite: /(x.com|twitter.com|kemono.cr)\// },
   {

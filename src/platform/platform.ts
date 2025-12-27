@@ -79,7 +79,7 @@ export interface Matcher<P> {
    */
   fetchOriginMeta(node: ImageNode, retry: boolean, chapterID?: number): Promise<OriginMeta>;
 
-  fetchImageData(imf: IMGFetcher): Promise<Blob | null>;
+  fetchImageData(imf: IMGFetcher): Promise<[Blob, number] | null>;
 
   galleryMeta(chapter: Chapter): GalleryMeta;
   title(chapter: Chapter[]): string;
@@ -123,9 +123,9 @@ export abstract class BaseMatcher<P> implements Matcher<P> {
   abstract parseImgNodes(pageSource: P, chapterID?: number): Promise<ImageNode[]>;
   abstract fetchOriginMeta(node: ImageNode, retry: boolean, chapterID?: number): Promise<OriginMeta>;
 
-  async fetchImageData(imf: IMGFetcher): Promise<Blob | null> {
+  async fetchImageData(imf: IMGFetcher): Promise<[Blob, number] | null> {
     if (imf.node.originSrc?.startsWith("blob:")) {
-      return await fetch(imf.node.originSrc).then(resp => resp.blob());
+      return await fetch(imf.node.originSrc).then(resp => resp.blob().then(b => [b, 200]));
     }
     return new Promise(async (resolve, reject) => {
       const debouncer = new Debouncer();
@@ -145,7 +145,7 @@ export abstract class BaseMatcher<P> implements Matcher<P> {
               evLog("error", "warn: fetch big image data onload setDownloadState error:", error);
             }
             imf.abortSignal = undefined;
-            resolve(data);
+            resolve([data, response.status]);
           },
           onerror: function(response) {
             imf.abortSignal = undefined;
