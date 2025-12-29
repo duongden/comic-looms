@@ -225,7 +225,7 @@ function getStorageMethod() {
 
 const storage = getStorageMethod();
 
-type SiteConfig = Partial<Config> & SiteProfile;
+export type SiteConfig = Partial<Config> & SiteProfile;
 
 export function getConf(): Config {
   const cfgStr = storage.getItem(CONFIG_KEY);
