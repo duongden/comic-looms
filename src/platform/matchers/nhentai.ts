@@ -55,18 +55,21 @@ class NHMatcher extends BaseMatcher<Document> {
     if (!thumbCDNUrls || thumbCDNUrls.length === 0) throw new Error("cannot find thumb_cdn_urls from script");
     if (!imageCDNUrls || imageCDNUrls.length === 0) throw new Error("cannot find image_cdn_urls from script");
     const jsonRaw = gRaw.match(/parse\((.*)\);/)?.[1];
-    if (!jsonRaw) throw new Error("cannot find images info");
+    if (!jsonRaw) throw new Error("cannot found images info from window._gallery");
     const info = JSON.parse(JSON.parse(jsonRaw)) as NHGalleryInfo;
+    if (!info.images) throw new Error("cannot found images from window._gallery");
     // parse gallery meta
-    const meta = new GalleryMeta(window.location.href, info.title.english);
-    meta.originTitle = info.title.japanese;
-    meta.tags = info.tags.reduce<Record<string, any[]>>((prev, curr) => {
-      if (!prev[curr.type]) {
-        prev[curr.type] = [];
-      }
-      prev[curr.type].push(curr.name);
-      return prev;
-    }, {});
+    const meta = new GalleryMeta(window.location.href, info.title?.english || document.title);
+    meta.originTitle = info.title?.japanese;
+    if (info.tags && info.tags.length > 0) {
+      meta.tags = info.tags.reduce<Record<string, any[]>>((prev, curr) => {
+        if (!prev[curr.type]) {
+          prev[curr.type] = [];
+        }
+        prev[curr.type].push(curr.name);
+        return prev;
+      }, {});
+    }
     this.meta = meta;
     return { info, thumbCDNUrls, imageCDNUrls };
   }
