@@ -166,7 +166,7 @@ export class BigImageFrameManager {
     if (intersecting.length === 0) return;
     // extend the renderingElements array to pre-decode the image
     let sibling: HTMLElement | null = intersecting[0];
-    let [count, limit] = [0, ADAPTER.conf.paginationIMGCount];
+    let [count, limit] = [0, ADAPTER.conf.paginationIMGCount + 1];
     while ((sibling = sibling.previousElementSibling as HTMLElement | null) && count < limit) {
       intersecting.unshift(sibling);
       count++;
