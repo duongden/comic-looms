@@ -24,6 +24,7 @@ export class ContextMenu {
   root: HTMLElement;
   menu?: HTMLElement;
   items: MenuItem[];
+  scrolled: boolean = false;
   getTarget: (x: number, y: number) => HTMLElement | undefined;
   isBigMode: () => boolean;
   pointerDownListener: (evt: MouseEvent) => void;
@@ -33,8 +34,12 @@ export class ContextMenu {
     html.root.addEventListener("contextmenu", (event) => {
       if (event.shiftKey || event.ctrlKey || event.altKey || event.metaKey) return;
       event.preventDefault();
-      this.open(event);
+      if (!this.scrolled) {
+        this.open(event);
+      }
+      this.scrolled = false;
     });
+    html.root.addEventListener("wheel", (event) => { if (event.buttons === 2) this.scrolled = true });
     this.pointerDownListener = (event) => {
       if (!this.menu) return;
       const path = event.composedPath();

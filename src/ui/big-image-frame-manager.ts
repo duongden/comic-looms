@@ -218,9 +218,6 @@ export class BigImageFrameManager {
       undefined,
       event));
     this.root.addEventListener("scroll", (event) => this.onScroll(event), { passive: false });
-    this.root.addEventListener("contextmenu", (event) => {
-      event.preventDefault();
-    });
     // for click
     this.root.addEventListener("mousedown", (mdevt) => {
       if (mdevt.button !== 0) return;
