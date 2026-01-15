@@ -95,7 +95,7 @@ class MangaParkMatcher extends BaseMatcher<string> {
 ADAPTER.addSetup({
   name: "MangaPark",
   workURLs: [
-    /mangapark.(net|com)\/title\/[^/]+$/
+    /(mangapark|comicpark|readpark|mpark).(net|com|org|me|io|to)\/title\/[^/]+$/
   ],
   match: ["https://mangapark.com/*"],
   constructor: () => new MangaParkMatcher(),
