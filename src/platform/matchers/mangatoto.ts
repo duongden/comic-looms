@@ -44,10 +44,20 @@ class BatotoMatcher extends BaseMatcher<string> {
   }
 
   async *fetchChapters(): AsyncGenerator<Chapter[]> {
-    let elements = Array.from(document.querySelectorAll<HTMLDivElement>("div[name=chapter-list] .scrollable-panel .flex-col-reverse astro-slot > div"));
-    elements = elements.reverse();
+    const listElem = document.querySelector<HTMLDivElement>("div[data-name=chapter-list] .scrollable-bar .group");
+    let elements = Array.from(listElem?.querySelectorAll<HTMLDivElement>(":scope > div") ?? []);
+    if (listElem?.classList.contains("flex-col-reverse")) {
+      elements = elements.reverse();
+    }
     if (elements.length === 0) {
-      elements = Array.from(document.querySelectorAll<HTMLDivElement>("div[name=chapter-list] .scrollable-panel .flex-col astro-slot > div"));
+      // const comicId = window.location.href.match(/title\/(\d+).*/)?.[1];
+      // if (comicId) {
+      //   const data = window.fetch(`${window.location.origin}/ap2`, {
+      //     "body": `{"query":"query get_comic_chapterList($comicId: ID!, $start: Int) {\n    get_comic_chapterList(comicId: $comicId, start: $start){\n      id data {\n        \n  id\n  dname\n  title\n  urlPath\n\n      }\n    }\n  }", "variables": {"comicId": "${comicId}", "start": -1}}`,
+      //   }).then(resp => resp.json()).catch(Error);
+      //   if (data instanceof Error) throw data;
+      // } TODO
+      throw new Error("cannot find chapters, the page has been updated");
     }
     return elements.map((elem, i) => {
       const a = elem.querySelector<HTMLAnchorElement>("div:first-child > a");
@@ -65,23 +75,24 @@ class BatotoMatcher extends BaseMatcher<string> {
   async parseImgNodes(href: string): Promise<ImageNode[]> {
     const doc = await window.fetch(href).then(resp => resp.text()).then(text => new DOMParser().parseFromString(text, "text/html")).catch(Error);
     if (doc instanceof Error) throw doc;
-    const raw = doc.querySelector("astro-island[component-url^='/_astro/ImageList'][props]")?.getAttribute("props");
-    if (!raw) throw new Error("cannot find ImageList props");
-    const json1 = JSON.parse(raw);
-    if (!json1.imageFiles?.[1]) throw new Error("cannot find imageFiles from ImageList props");
-    const images = JSON.parse(json1.imageFiles[1]) as [number, string][];
-    if (!images.length || images.length === 0) throw new Error("cannot find images");
-    const digits = images.length.toString().length;
-    return images.map(([_, url], i) => {
+    const elements = Array.from(doc.querySelectorAll<HTMLDivElement>("div[data-name=image-show]"));
+    // const raw = doc.querySelector("astro-island[component-url^='/_astro/ImageList'][props]")?.getAttribute("props");
+    if (elements.length === 0) throw new Error("cannot find images");
+    const nodes: ImageNode[] = [];
+    const digits = elements.length.toString().length;
+    for (let i = 0; i < elements.length; i++) {
+      const elem = elements[i];
       const title = (i + 1).toString().padStart(digits, "0");
+      const url = elem.querySelector<HTMLImageElement>("img")?.src;
+      if (!url) throw new Error("cannot get image src");
       const ext = url.split(".").pop() ?? "webp";
       let wh = undefined;
-      const matches = url.match(/\/\d+_(\d+)_(\d+)_\d+\.\w+$/);
-      if (matches && matches.length === 3) {
-        wh = { w: parseInt(matches[1]), h: parseInt(matches[2]) };
+      if (elem.style.height && elem.style.width) {
+        wh = { w: parseInt(elem.style.width), h: parseInt(elem.style.height) };
       }
-      return new ImageNode("", href, `${title}.${ext}`, undefined, url, wh);
-    })
+      nodes.push(new ImageNode("", href, `${title}.${ext}`, undefined, url, wh));
+    }
+    return nodes;
   }
 
   async fetchOriginMeta(node: ImageNode): Promise<OriginMeta> {
@@ -135,7 +146,7 @@ class BatotoMatcher extends BaseMatcher<string> {
 ADAPTER.addSetup({
   name: "BATO.TO v3x",
   workURLs: [
-    /(mangatoto.com|bato.to)\/title\/\d+[^\/]*$/
+    /(mangatoto.com|bato.(to|si|ing))\/title\/\d+[^\/]*$/
   ],
   match: ["https://mangatoto.com/*", "https://bato.to/*"],
   constructor: () => new BatotoMatcher(),
