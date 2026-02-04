@@ -1,7 +1,7 @@
 import { GalleryMeta } from "./download/gallery-meta";
 import EBUS from "./event-bus";
 import { IMGFetcherQueue } from "./fetcher-queue";
-import { Filter } from "./filter";
+import { Filter, } from "./filter";
 import { IMGFetcher } from "./img-fetcher";
 import ImageNode, { NodeAction } from "./img-node";
 import { ADAPTER } from "./platform/adapt";
@@ -90,7 +90,7 @@ export class PageFetcher {
     EBUS.subscribe("filter-update-all-tags", async () => {
       const chapter = this.chapters[this.chapterIndex];
       const set = new Set<string>();
-      chapter.filteredQueue.forEach(imf => imf.node.tags.forEach(t => set.add(t)));
+      chapter.filteredQueue.forEach(imf => imf.node.tags.forEach(t => set.add(t.toString())));
       this.filter.allTags = set;
     });
   }
