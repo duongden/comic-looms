@@ -31,6 +31,10 @@ type Media = {
     small: Size,
     thumb: Size,
   },
+  original_info?: {
+    height: number,
+    width: number,
+  }
   video_info?: VideoInfo,
 }
 type Legacy = {
@@ -404,7 +408,13 @@ class TwitterMatcher extends BaseMatcher<Item[]> {
         const src = `${baseSrc}?format=${ext}&name=${media.sizes.small ? "small" : "thumb"}`;
         let href = media.expanded_url.replace(/\/(photo|video)\/\d+/, "");
         href = `${href}/${media.type === "video" ? "video" : "photo"}/${i + 1}`
-        const largeSrc = `${baseSrc}?format=${ext}&name=${media.sizes.large ? "large" : media.sizes.medium ? "medium" : "small"}`
+        let largeSrc = "";
+        if (ADAPTER.conf.fetchOriginal && media.original_info) {
+          // largeSrc = `${baseSrc}?format=${ext}&name=4096x4096`;
+          largeSrc = `${baseSrc}?format=${ext}&name=orig`;
+        } else {
+          largeSrc = `${baseSrc}?format=${ext}&name=${media.sizes.large ? "large" : media.sizes.medium ? "medium" : "small"}`
+        }
         const title = `${media.id_str}-${baseSrc.split("/").pop()}.${ext}`
         const wh = { w: media.sizes.small.w, h: media.sizes.small.h };
         const node = new ImageNode(src, href, title, undefined, largeSrc, wh);
